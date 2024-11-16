@@ -2,13 +2,13 @@ pipeline {
     agent any
     environment {
         RENDER_API_KEY = credentials('RENDER_API_KEY') 
-        SERVER_SERVICE_ID = 'srv-csoruei3esus73cbgus0'
-        CLIENT_SERVICE_ID = 'srv-csot7kl6l47c7395dicg'
+        SERVER_SERVICE_ID = 'srv-cssb9urtq21c739umesg'
+        CLIENT_SERVICE_ID = 'srv-cssbh8jtq21c739upkig'
     }
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'production', url: 'https://github.com/KshitizSachan/alumni-network-iiitdwd.git'
+                git branch: 'production', url: 'https://github.com/notSoWickedWick/DevOps-Project.git'
             }
         }
         // stage('Test Server') {
