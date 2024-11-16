@@ -1,145 +1,106 @@
-# microservice-docker
+# Basic MERN App
 
-We're use Java 11 and Spring Boot 2.1.3.RELEASE version.
+![my picture](https://doananhtingithub40102.github.io/MyData/mern/mypicture.png)
 
-We have 4 modules. 2 of these modules for infrastructure such as config and discovery server.
+A full-stack [MERN](https://www.mongodb.com/mern-stack) application for managing information of employees.
 
-Each module has its own Dockerfile and env. files. Env. files contains an ip, port and other settings. We will pass these to spring boot app.
+## About the project
 
-## Before start
-We are separated CI and CD pipeline. Therefore, spring boot jar should be available in your classpath.
+This is a full-stack MERN application that manages the basic information of employees. The app uses an employee database from the MongoDB Atlas database and then display it using a React.
 
-Go to root path and run **mvn clean install** to create all artifacts.
+## Tech Stack
 
-After creating jars you can create docker image from jar file. Go to each module directory and create docker image.
+**Client:** React, Bootstrap
 
-Our Dockerfile is very simple for create image. For example;
+**Server:** NodeJS, ExpressJS
 
-```
-FROM openjdk:11-jre-slim-sid
+**Database:** MongoDB
 
-WORKDIR /home/app
-COPY target/config-server-0.0.1-SNAPSHOT.jar config-server.jar
+## Run Locally
 
-CMD java -jar config-server.jar
-```
+Clone the project
 
-And we can create image such as below;
-
-```
-cd config-server
-docker build -t config-server:v1 .
-```  
-
-We are created image for each module. Run **docker images** and output look like below;
-
-```
-REPOSITORY                                TAG                 IMAGE ID            CREATED             SIZE
-employee-service                          v1                  66261584eaec        30 minutes ago      149MB
-organization-service                      v1                  a5be7f277dca        33 minutes ago      150MB
-discovery-server                          v1                  b35fdd15cada        About an hour ago   146MB
-config-server                             v1                  f39259fbe80f        2 hours ago         128MB
-```
-
-Alternatively you can create all images in the sub directory which has a Dockerfile via dockerize.sh script. Script expects the version info for input.
-
-We can explain our microservice architecture as follows;
-
-* We have a config server for serving application config for other app. Running with native profiles for serving config in classpath. 
-* We have a discovery server for all service can communicate to other. Running with default profile.
-* We have an employee and organization service. These service pull own configuration from config server and serving own business logic.
-* Organization service using employee service with feign client over the discovery service.
-
-Our sample docker-compose file such as below;
-
-```
-version: '3.3'
-
-services:
-  config-server:
-    image: config-server:v1
-    env_file:
-      - config-server/env/native.env
-    ports:
-      - '8088:8080'
-
-  discovery-server:
-    image: discovery-server:v1
-    env_file:
-      - discovery-server/env/local.env
-    ports:
-      - '8090:8080'
-    depends_on:
-      - config-server
-
-  employee-service:
-    image: employee-service:v1
-    env_file:
-      - employee-service/env/local.env
-    ports:
-      - '8092:8080'
-    depends_on:
-      - discovery-server
-      - config-server
-    restart: on-failure
-
-  organization-service:
-    image: organization-service:v1
-    env_file:
-      - organization-service/env/local.env
-    ports:
-      - '8094:8080'
-    depends_on:
-      - config-server
-      - discovery-server
-      - employee-service
-    restart: on-failure
-```
-
-* Each service expose 8080 port in container. And we will map different ports on host.
-* Discovery server depends on config server.
-* Employee service depends on config server and discovery server.
-* Organization service depends on config server, discovery server and employee service.
-
-We can also build images via following command;
 ```bash
-docker-compose -f docker-compose-local.yml build
+  git clone https://github.com/doananhtingithub40102/mern-app.git
 ```
 
-Let's beam up;
-```
-docker-compose -f docker-compose-local.yml up -d
+Go to the project directory
+
+```bash
+  cd mern-app
 ```
 
-After all services up and register to discovery server, you can go to **http://localhost:8094/organization/1/employee**
-
-Output looks like this -> 
+Create an Atlas URI connection parameter in `server/.env` with your Atlas URI:
 ```
-[
-    "1:Alican",
-    "1:Onur",
-    "1:Lemi",
-    "1:Burak"
-]
+ATLAS_URI="mongodb+srv://<username>:<password>@cluster0.6cgz2s1.mongodb.net/?retryWrites=true&w=majority"
+PORT=5000
 ```
 
-When you go to eureka dashboard you can see 2 services are registered to discovery server;
-![discovery-server dashboard](./ss/eureka.png)
-
-Also, you can scale up the employee service to 2 instances. After scaling up, you could see in two instances of employee service registered to eureka discovery server in dashboard.
-Feign client could pick up one of these for retrieve employee list.  
-![scale up service dashboard](./ss/service-scale.png)
-> You can scale up to 2 instances like this: docker-compose -f docker-compose-local.yml scale employee-service=2
-> Please note that, you should change host port mapping when scaling up.
-
-These service can communicate with service name instead of ip/port.
-
-After all you can stop all of them;
+Create an hostname on server enviroment variable in `client/.env` with your hostname on server:
 ```
-docker-compose -f docker-compose-local.yml down -v
+REACT_APP_YOUR_HOSTNAME="http://localhost:5000"
 ```
 
-And also you can remove images;
+Install dependencies
+
+```bash
+  cd server
+  npm install
 ```
-docker-compose -f docker-compose-local.yml down -v --rmi all
+
+```bash
+  cd client
+  npm install
 ```
+
+Start the server
+
+```bash
+  cd server
+  node server.js
+```
+Start the Client
+
+```bash
+  cd client
+  npm start
+```
+  
+
+## Features in the project
+
+- The user can **create** the information of a employee, and managing it.
+
+- **Displaying** the information of employees, including the name, position, and level of the employee.
+
+- Includes **Update** and **Delete** actions.
+
+## Learn More
+
+**FrontEnd**
+
+* To learn React, check out the [React documentation](https://reactjs.org/).
+
+* You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+
+* Get started with [Bootstrap](https://www.w3schools.com/bootstrap5/index.php), the world's most popular framework for building responsive, mobile-first websites.
+
+**BackEnd**
+
+* [Node.js Tutorial](https://www.w3schools.com/nodejs/default.asp)
+
+* [ExpressJS Tutorial](https://www.tutorialspoint.com/expressjs/index.htm)
+
+**Database**
+
+* [MongoDB Tutorial](https://www.w3schools.com/mongodb/)
+
+* Follow the [Get Started with MongoDB Atlas](https://www.mongodb.com/docs/atlas/getting-started/) guide to create an Atlas cluter, connecting to it, and loading your data.
+
+**Fullstack**
+
+* Learn all about the [MERN stack](https://www.mongodb.com/languages/mern-stack-tutorial) in this step-by-step guide on how to use it by developing a simple CRUD application from scratch.
+
+## Live app
+
+<a href="https://employee-manager-tindoan-xu3i.onrender.com/">Live fullstack MERN app</a>
